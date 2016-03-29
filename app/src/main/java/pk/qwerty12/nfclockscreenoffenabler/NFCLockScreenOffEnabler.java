@@ -10,14 +10,12 @@ import java.util.List;
 import java.util.Set;
 
 import android.annotation.SuppressLint;
-import android.app.AndroidAppHelper;
 import android.app.Application;
 import android.app.KeyguardManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.res.XModuleResources;
@@ -28,6 +26,7 @@ import android.util.Log;
 import de.robv.android.xposed.IXposedHookLoadPackage;
 import de.robv.android.xposed.IXposedHookZygoteInit;
 import de.robv.android.xposed.XC_MethodHook;
+import de.robv.android.xposed.XSharedPreferences;
 import de.robv.android.xposed.XposedBridge;
 import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.XposedHelpers.ClassNotFoundError;
@@ -38,7 +37,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 	private static final String MY_PACKAGE_NAME = NFCLockScreenOffEnabler.class.getPackage().getName();
 	private String MODULE_PATH;
 
-	private SharedPreferences prefs;
+	private XSharedPreferences prefs;
 	private Context mContext = null;
 
 	private XModuleResources modRes = null;
@@ -63,9 +62,8 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 
 	// Prevent multiple registers.
 	private boolean mBroadcastReceiverRegistered = false;
-	private boolean mIsOemStupid;
 
-	private static Object mKeyguardSecurityCallbackInstance;
+    private static Object mKeyguardSecurityCallbackInstance;
 
 	private PowerManager.WakeLock mWakeLock;
 
@@ -176,7 +174,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 					PowerManager pwrmgr = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
 					Common.sendTagChangedBroadcast(context, uuid, true);
 
-					if (authorizedNfcTags != null && authorizedNfcTags.contains(uuidString.trim())) {
+					if (authorizedNfcTags.contains(uuidString.trim())) {
 						if (mDebugMode)
 							XposedBridge.log("Got matching NFC tag, unlocking device...");
 						boolean isKeygaurdLocked;
@@ -185,7 +183,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 						} else {
 							isKeygaurdLocked = kmgr.inKeyguardRestrictedInputMode();
 						}
-						if (isKeygaurdLocked || !pwrmgr.isScreenOn())
+						if (isKeygaurdLocked || !pwrmgr.isInteractive())
 							context.sendBroadcast(new Intent(Common.INTENT_UNLOCK_DEVICE));
 					}
 
@@ -203,8 +201,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 	// Thanks to rovo89 for his suggested improvements: http://forum.xda-developers.com/showpost.php?p=35790508&postcount=185
 	@Override
 	public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
-		prefs = AndroidAppHelper.getSharedPreferencesForPackage(MY_PACKAGE_NAME,
-				Common.PREFS, Context.MODE_PRIVATE);
+        prefs = new XSharedPreferences(MY_PACKAGE_NAME, Common.PREFS);
 		MODULE_PATH = startupParam.modulePath;
 		mDebugMode = prefs.getBoolean(Common.PREF_DEBUG_MODE, false);
 	}
@@ -226,7 +223,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 	}
 
 	private void reloadSoundsToPlayList() {
-		HashSet<String> defaultSounds = new HashSet<String>();
+		HashSet<String> defaultSounds = new HashSet<>();
 		defaultSounds.add("sound_start");
 		defaultSounds.add("sound_error");
 		defaultSounds.add("sound_end");
@@ -241,14 +238,14 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 			reloadSoundsToPlayList();
 
 			Class<?> NfcService = null;
+            boolean mIsOemStupid = false;
 
 			// Fuck you LG
-			mIsOemStupid = false;
 			try {
 				NfcService = findClass(Common.PACKAGE_NFC + ".LNfcService", lpparam.classLoader);
 				mIsOemStupid = true;
 			} catch (ClassNotFoundError e) {
-
+                e.printStackTrace();
 			}
 
 			if (NfcService == null) {
@@ -258,6 +255,10 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 					e.printStackTrace();
 				}
 			}
+
+            if (NfcService == null){
+                throw new RuntimeException("NFC Service not found");
+            }
 
 			// Don't reload settings on every call, that can cause slowdowns.
 			// This intent is fired from NFCLockScreenOffEnablerActivity when
@@ -273,7 +274,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 						@Override
 						public void onReceive(Context context, Intent intent) {
 							XposedBridge.log(MY_PACKAGE_NAME + ": " + "Settings updated, reloading...");
-							AndroidAppHelper.reloadSharedPreferencesIfNeeded(prefs);
+                            prefs.reload();
 
 							// This may be faster than using prefs.getBoolean, since we use this a lot.
 							mDebugMode = prefs.getBoolean(Common.PREF_DEBUG_MODE, false);
@@ -343,7 +344,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 
 					try {
 						Boolean NeedScreenOnState = (Boolean)XposedHelpers.getAdditionalInstanceField(param.thisObject, "NeedScreenOnState") ;
-						if (NeedScreenOnState == null || NeedScreenOnState == false)
+						if (NeedScreenOnState == null || !NeedScreenOnState)
 							return;
 
 						param.setResult(SCREEN_STATE_ON_UNLOCKED);
@@ -377,14 +378,18 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 						protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
 							final String enableNfcWhen = prefs.getString(Common.PREF_ENABLE_NFC_WHEN, "locked_screen_on");
 
-							if (enableNfcWhen.equals("unlocked")) {
-								XposedHelpers.setIntField(param.thisObject, "POLLING_MODE", 0);
-							} else if (enableNfcWhen.equals("locked_screen_on")) {
-								XposedHelpers.setIntField(param.thisObject, "POLLING_MODE", 2);
-							} else if (enableNfcWhen.equals("screen_off")) {
-								XposedHelpers.setIntField(param.thisObject, "POLLING_MODE", 1);
-							}
-						};
+                            switch (enableNfcWhen) {
+                                case "unlocked":
+                                    XposedHelpers.setIntField(param.thisObject, "POLLING_MODE", 0);
+                                    break;
+                                case "locked_screen_on":
+                                    XposedHelpers.setIntField(param.thisObject, "POLLING_MODE", 2);
+                                    break;
+                                case "screen_off":
+                                    XposedHelpers.setIntField(param.thisObject, "POLLING_MODE", 1);
+                                    break;
+                            }
+						}
 					});
 				} else {
 					findAndHookMethod(NfcService, "applyRouting", boolean.class, new XC_MethodHook() {
@@ -515,17 +520,20 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 						try {
 							mKeyguardSecurityCallbackInstance = 
 									getObjectField(param.thisObject, fieldName);
-						} catch (NoSuchFieldError e) {}
+						} catch (NoSuchFieldError e) {
+                            e.printStackTrace();
+                        }
 
 						Context context = (Context) param.args[0];
 						registerNfcUnlockReceivers(context);
 					}
 				});
-			} catch (ClassNotFoundError e) {
-			} catch (NoSuchFieldError e) {}
+			} catch (ClassNotFoundError | NoSuchFieldError e) {
+                e.printStackTrace();
+			}
 
 
-			// The classes and field names were renamed and moved around between 4.1 and 4.2,
+            // The classes and field names were renamed and moved around between 4.1 and 4.2,
 			// the bits we're interested in stayed the same though.
 			try {
 				String className;		
@@ -556,7 +564,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 					}
 				});
 			} catch (ClassNotFoundError e) {
-				XposedBridge.log("Class not found: " + e.getMessage().toString() + " NFC Unlocking won't work");
+				XposedBridge.log("Class not found: " + e.getMessage() + " NFC Unlocking won't work");
 			}
 		}
 

@@ -73,7 +73,7 @@ public class NFCLockScreenOffEnablerActivity extends PreferenceActivity {
 		mEnableTagLostCheckBox.setOnPreferenceChangeListener(listener);
 
 		mSoundsToPlay.setValues(mPrefs.getStringSet(Common.PREF_SOUNDS_TO_PLAY, 
-				new HashSet<String>(Arrays.asList(
+				new HashSet<>(Arrays.asList(
 						getResources().getStringArray(R.array.pref_default_sounds_to_play)))));
 		mSoundsToPlay.setOnPreferenceChangeListener(listener);
 
@@ -188,7 +188,7 @@ public class NFCLockScreenOffEnablerActivity extends PreferenceActivity {
 		Editor editor = prefs.edit();
 		if (prefs.contains(Common.PREF_PLAY_TAG_LOST_SOUND)) {
 			HashSet<String> defaultSounds = 
-					new HashSet<String>(Arrays.asList(
+					new HashSet<>(Arrays.asList(
 							getResources().getStringArray(R.array.pref_default_sounds_to_play)));
 			boolean wasTagLostSoundEnabled = 
 					prefs.getBoolean(Common.PREF_PLAY_TAG_LOST_SOUND, true);
@@ -216,7 +216,7 @@ public class NFCLockScreenOffEnablerActivity extends PreferenceActivity {
 			didWeMigrate = true;
 		}
 
-		editor.commit();
+		editor.apply();
 
 		if (didWeMigrate) {
 			emitSettingsChanged();
@@ -228,7 +228,7 @@ public class NFCLockScreenOffEnablerActivity extends PreferenceActivity {
 	private void getViews() {
 		mEnableTagLostCheckBox = (CheckBoxPreference) findPreference(Common.PREF_TAGLOST);
 		mEnableNfcForStatesList = (ListPreference) findPreference("enable_nfc_for_lock_state");
-		mCopyrightPreference = (Preference) findPreference("copyright_key");
+		mCopyrightPreference = findPreference("copyright_key");
 		mPresenceCheckTimeoutPreference = (EditTextPreference) findPreference(Common.PREF_PRESENCE_CHECK_TIMEOUT);
 		mSoundsToPlay = (MultiSelectListPreference) findPreference(Common.PREF_SOUNDS_TO_PLAY);
 	}
@@ -251,7 +251,7 @@ public class NFCLockScreenOffEnablerActivity extends PreferenceActivity {
 			editor.putBoolean(preference.getKey(), (Boolean) newValue);
 		}
 
-		editor.commit();
+		editor.apply();
 		emitSettingsChanged();
 	}
 }

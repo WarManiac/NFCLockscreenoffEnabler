@@ -17,7 +17,7 @@ public class NfcTagArrayAdapter extends ArrayAdapter<NfcTag> {
 	private Context mContext = null;
 	private ArrayList<NfcTag> mNfcTags = null;
 
-	public NfcTagArrayAdapter(Context context, int resource, ArrayList<NfcTag> nfcTags) {
+	public NfcTagArrayAdapter(Context context, ArrayList<NfcTag> nfcTags) {
 		super(nfcTags);
 		mNfcTags = nfcTags;
 		mContext = context;
@@ -28,7 +28,7 @@ public class NfcTagArrayAdapter extends ArrayAdapter<NfcTag> {
 		View v = convertView;
 		if (v == null) {
 			LayoutInflater vi = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-			v = vi.inflate(R.layout.nfc_tag_row, null);
+			v = vi.inflate(R.layout.nfc_tag_row, parent, false);
 		}
 		NfcTag nfcTag = mNfcTags.get(position);
 		if (nfcTag != null) {
@@ -47,7 +47,7 @@ public class NfcTagArrayAdapter extends ArrayAdapter<NfcTag> {
 	}
 
 	public Set<String> getTagNames() {
-		HashSet<String> names = new HashSet<String>();
+		HashSet<String> names = new HashSet<>();
 		for (int i = 0; i < getCount(); i++) {
 			names.add(getItem(i).getTagName());
 		}
@@ -56,7 +56,7 @@ public class NfcTagArrayAdapter extends ArrayAdapter<NfcTag> {
 	}
 
 	public Set<String> getTagIds() {
-		HashSet<String> ids = new HashSet<String>();
+		HashSet<String> ids = new HashSet<>();
 		for (int i = 0; i < getCount(); i++) {
 			ids.add(getItem(i).getTagId());
 		}

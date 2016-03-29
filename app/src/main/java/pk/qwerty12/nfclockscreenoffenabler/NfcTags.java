@@ -5,6 +5,7 @@ import java.util.HashSet;
 
 import pk.qwerty12.nfclockscreenoffenabler.UndoBarController.UndoListener;
 import android.annotation.SuppressLint;
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -36,7 +37,6 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
-import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -68,7 +68,10 @@ public class NfcTags extends Activity implements UndoListener {
 		setContentView(R.layout.activity_nfc_tags);
 
 		mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
-		getActionBar().setDisplayHomeAsUpEnabled(true);
+        ActionBar ab = getActionBar();
+        if (ab != null){
+            ab.setDisplayHomeAsUpEnabled(true);
+        }
 
 		mPrefs = getSharedPreferences(Common.PREFS, Context.MODE_WORLD_READABLE);
 
@@ -100,7 +103,7 @@ public class NfcTags extends Activity implements UndoListener {
 	}
 
 	private void setupListViewFromSet() {
-		HashSet<String> defaultValue = new HashSet<String>();
+		HashSet<String> defaultValue = new HashSet<>();
 		String[] nfcTagIds = mPrefs.getStringSet(Common.PREF_NFC_KEYS, defaultValue).toArray(new String[0]);
 		String[] nfcTagNames = mPrefs.getStringSet(Common.PREF_NFC_KEYS_NAMES, defaultValue).toArray(new String[0]);
 
@@ -118,7 +121,7 @@ public class NfcTags extends Activity implements UndoListener {
 			nfcTagsArray.add(new NfcTag(tagId, tagName));
 		}
 
-		mArrayAdapter = new NfcTagArrayAdapter(this, R.layout.nfc_tag_row, nfcTagsArray);
+		mArrayAdapter = new NfcTagArrayAdapter(this, nfcTagsArray);
 		SwipeDismissAdapter swipeAdapter = new SwipeDismissAdapter(mArrayAdapter, new OnDismissCallback() {
 
 			@Override
@@ -196,7 +199,7 @@ public class NfcTags extends Activity implements UndoListener {
 		if (mDialogShowing)
 			return;
 
-		Tag t = (Tag)intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
+		Tag t = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
 		String uuid = Common.byteArrayToHexString(t.getId());
 
 		if (mArrayAdapter.containsTagId(uuid)) {
@@ -236,7 +239,6 @@ public class NfcTags extends Activity implements UndoListener {
 				mArrayAdapter.add(new NfcTag(uuid, name));
 				mDialogShowing = false;
 				dialog.dismiss();
-				return;
 			}
 		});
 
@@ -245,7 +247,6 @@ public class NfcTags extends Activity implements UndoListener {
 			public void onClick(DialogInterface dialog, int which) {
 				mDialogShowing = false;
 				dialog.dismiss();
-				return;
 			}
 		});
 
