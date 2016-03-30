@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.v7.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="?android:attr/listPreferredItemHeight"
     android:baselineAligned="true"
     android:orientation="vertical"
     android:padding="6dip" >
 
-    <TextView
+    <android.support.v7.widget.AppCompatTextView
         android:id="@+id/nfc_tag_friendly_name_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -14,9 +14,9 @@
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:textIsSelectable="false"
-        android:textStyle="bold" />
+        android:textAppearance="?android:attr/textAppearanceLarge" />
 
-    <TextView
+    <android.support.v7.widget.AppCompatTextView
         android:id="@+id/nfc_tag_id_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -24,6 +24,7 @@
         android:focusable="false"
         android:focusableInTouchMode="false"
         android:singleLine="true"
-        android:textIsSelectable="false" />
+        android:textIsSelectable="false"
+        android:textAppearance="?android:attr/textAppearanceMedium" />
 
-</LinearLayout>
+</android.support.v7.widget.LinearLayoutCompat>

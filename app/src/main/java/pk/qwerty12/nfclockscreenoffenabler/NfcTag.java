@@ -7,10 +7,6 @@ public class NfcTag implements Parcelable {
 	private String mNfcTagName = null;
 	private String mNfcTagId = null;
 
-	public NfcTag() {
-
-	}
-
 	public NfcTag(String tagId, String tagName) {
 		setTagId(tagId);
 		setTagName(tagName);
@@ -30,10 +26,6 @@ public class NfcTag implements Parcelable {
 
 	public void setTagId(String id) {
 		mNfcTagId = id;
-	}
-
-	public void setTagId(byte[] uuid) {
-		mNfcTagId = Common.byteArrayToHexString(uuid);
 	}
 
 	public NfcTag (Parcel in) {

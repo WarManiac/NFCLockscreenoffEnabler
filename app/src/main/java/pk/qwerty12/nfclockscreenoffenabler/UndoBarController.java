@@ -19,10 +19,8 @@ package pk.qwerty12.nfclockscreenoffenabler;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.content.Context;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Parcelable;
-import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewPropertyAnimator;
 import android.widget.TextView;
@@ -111,22 +109,6 @@ public class UndoBarController {
 							mUndoToken = null;
 						}
 					});
-		}
-	}
-
-	public void onSaveInstanceState(Bundle outState) {
-		outState.putCharSequence("undo_message", mUndoMessage);
-		outState.putParcelable("undo_token", mUndoToken);
-	}
-
-	public void onRestoreInstanceState(Bundle savedInstanceState) {
-		if (savedInstanceState != null) {
-			mUndoMessage = savedInstanceState.getCharSequence("undo_message");
-			mUndoToken = savedInstanceState.getParcelable("undo_token");
-
-			if (mUndoToken != null || !TextUtils.isEmpty(mUndoMessage)) {
-				showUndoBar(true, mUndoMessage, mUndoToken);
-			}
 		}
 	}
 

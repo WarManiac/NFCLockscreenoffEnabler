@@ -34,7 +34,7 @@ import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam;
 
 public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHookLoadPackage {
 	// Thanks to Tungstwenty for the preferences code, which I have taken from his Keyboard42DictInjector and made a bad job of it
-	private static final String MY_PACKAGE_NAME = NFCLockScreenOffEnabler.class.getPackage().getName();
+	public static final String MY_PACKAGE_NAME = NFCLockScreenOffEnabler.class.getPackage().getName();
 	private String MODULE_PATH;
 
 	private XSharedPreferences prefs;
@@ -79,20 +79,8 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 		private static final String TAG = "PresenceCheckWatchdogRunHook";
 
 		@Override
-		protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
-			if (!prefs.getBoolean(Common.PREF_TAGLOST, true))
-				return;
-
-			/* The timeout is final in KitKat, no easy way to change it */
-			if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.KITKAT) {
-				XposedHelpers.callMethod(param.thisObject, "setTimeout",
-						Integer.parseInt(prefs.getString(Common.PREF_PRESENCE_CHECK_TIMEOUT,
-								"2000")));
-			}
-		}
-
-		@Override
 		protected void afterHookedMethod(MethodHookParam param) throws Throwable {
+            Log.i("NFC", "after hook");
 			if (!prefs.getBoolean(Common.PREF_TAGLOST, true))
 				return;
 
@@ -159,6 +147,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 		@SuppressLint("NewApi")
 		@Override
 		protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
+            Log.i("NFC", "Before hook");
 			try {
 				byte[] uuid = (byte[]) XposedHelpers.callMethod(param.args[0], "getUid");
 				String uuidString = Common.byteArrayToHexString(uuid);
@@ -201,12 +190,14 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 	// Thanks to rovo89 for his suggested improvements: http://forum.xda-developers.com/showpost.php?p=35790508&postcount=185
 	@Override
 	public void initZygote(IXposedHookZygoteInit.StartupParam startupParam) throws Throwable {
+        Log.i("NFC", "init");
         prefs = new XSharedPreferences(MY_PACKAGE_NAME, Common.PREFS);
 		MODULE_PATH = startupParam.modulePath;
 		mDebugMode = prefs.getBoolean(Common.PREF_DEBUG_MODE, false);
 	}
 
 	public void playTagLostSound() {
+        Log.i("NFC", "tag lost");
 		if (!mSoundsToPlayList.contains("sound_taglost"))
 			return;
 
@@ -223,6 +214,7 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 	}
 
 	private void reloadSoundsToPlayList() {
+        Log.i("NFC", "reload sounds");
 		HashSet<String> defaultSounds = new HashSet<>();
 		defaultSounds.add("sound_start");
 		defaultSounds.add("sound_error");
@@ -233,7 +225,12 @@ public class NFCLockScreenOffEnabler implements IXposedHookZygoteInit, IXposedHo
 
 	@Override
 	public void handleLoadPackage(LoadPackageParam lpparam) throws Throwable {
+
+        Log.i("NFCLSOE", "Loading package");
+
 		if (lpparam.packageName.equals(Common.PACKAGE_NFC)) {
+            Log.i("NFCLSOE", "NFC package");
+
 			modRes = XModuleResources.createInstance(MODULE_PATH, null);
 			reloadSoundsToPlayList();
 

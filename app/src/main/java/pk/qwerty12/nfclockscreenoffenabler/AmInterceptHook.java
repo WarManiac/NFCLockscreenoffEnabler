@@ -13,7 +13,7 @@ public class AmInterceptHook extends XC_MethodHook {
 		Object result = param.getResultOrThrowable();
 		if (result instanceof Intent) {
 			Intent intent = (Intent) result;
-			if (intent != null && Common.INTENT_UNLOCK_DEVICE.equals(intent.getAction()))
+			if (Common.INTENT_UNLOCK_DEVICE.equals(intent.getAction()))
 				param.setResult(new Intent(Common.INTENT_UNLOCK_INTERCEPTED));
 		}
 	}

@@ -12,14 +12,8 @@ public class Common {
 	public static final String SETTINGS_UPDATED_INTENT = MOD_PACKAGE_NAME + ".SETTINGS_UPDATED";
 
 	public static final String PREFS = "NFCModSettings";
-	@Deprecated
-	public static final String PREF_LOCKED = "On_Locked";
 	public static final String PREF_TAGLOST = "TagLostDetecting";
-	@Deprecated
-	public static final String PREF_PRESENCE_CHECK_TIMEOUT_OLD = "presence_check_timeout";
-	public static final String PREF_PRESENCE_CHECK_TIMEOUT = "presence_check_time_out";
 	public static final String PREF_DEBUG_MODE = "debug_mode";
-	public static final String PREF_PLAY_TAG_LOST_SOUND = "should_play_tag_lost_sound";
 	public static final String PREF_NFC_KEYS = "authorized_nfc_tag_uuids";
 	public static final String PREF_NFC_KEYS_NAMES = "authorized_nfc_tag_friendly_names";
 	public static final String PREF_SOUNDS_TO_PLAY = "nfc_sounds_to_play";

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-        <style name="UndoBar">
+    <style name="UndoBar">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">48dp</item>
         <item name="android:layout_gravity">bottom</item>
@@ -52,6 +52,7 @@
     <style name="CardButton" parent="CardView.Light">
         <item name="cardUseCompatPadding">true</item>
         <item name="elevation">5dp</item>
+        <item name="android:elevation">5dp</item>
         <item name="android:padding">2dp</item>
         <item name="android:focusable">true</item>
         <item name="android:clickable">true</item>
